@@ -6,6 +6,7 @@ import { EmptyState, ErrorState, Loader } from '@/ui';
 import { colors, spacing } from '@/theme/tokens';
 import { fontFamily, fontSize } from '@/theme/typography';
 import { FeedTabs } from '@/features/feed/FeedTabs';
+import { FeedSkeleton } from '@/features/feed/FeedSkeleton';
 import { PostCard } from '@/features/feed/PostCard';
 import { useFeed } from '@/features/feed/useFeed';
 
@@ -44,7 +45,7 @@ export default function FeedScreen() {
   );
 
   const ListEmpty = isLoading ? (
-    <Loader />
+    <FeedSkeleton />
   ) : error ? (
     <ErrorState title={error.message} onRetry={refetch} />
   ) : (
