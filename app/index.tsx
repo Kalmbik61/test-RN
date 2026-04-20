@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import type { Post, PostTier } from '@/api/posts';
 import { EmptyState, ErrorState, Loader } from '@/ui';
@@ -17,8 +18,16 @@ export default function FeedScreen() {
   const [tier, setTier] = useState<FeedTier>(undefined);
   const [simulateError, setSimulateError] = useState(false);
 
-  const { data, error, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } =
-    useFeed(tier, simulateError);
+  const {
+    data,
+    error,
+    isLoading,
+    isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useFeed(tier, simulateError);
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
 
@@ -47,7 +56,11 @@ export default function FeedScreen() {
   const ListEmpty = isLoading ? (
     <FeedSkeleton />
   ) : error ? (
-    <ErrorState title={error.message} onRetry={refetch} />
+    <ErrorState
+      title="Не удалось загрузить публикации"
+      retryLabel="Повторить"
+      onRetry={refetch}
+    />
   ) : (
     <EmptyState title="Постов пока нет" />
   );
@@ -55,47 +68,61 @@ export default function FeedScreen() {
   const ListFooter = isFetchingNextPage ? <Loader size="small" style={styles.footer} /> : null;
 
   return (
-    <FlatList
-      data={posts}
-      keyExtractor={(p) => p.id}
-      renderItem={renderItem}
-      ListHeaderComponent={ListHeader}
-      ListEmptyComponent={ListEmpty}
-      ListFooterComponent={ListFooter}
-      onEndReached={() => {
-        if (hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
+    <SafeAreaView edges={['top']} style={styles.safe}>
+      <FlatList
+        data={posts}
+        keyExtractor={(p) => p.id}
+        renderItem={renderItem}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={ListEmpty}
+        ListFooterComponent={ListFooter}
+        ItemSeparatorComponent={Separator}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.4}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching && !isFetchingNextPage}
+            onRefresh={refetch}
+            tintColor={colors.primary}
+          />
         }
-      }}
-      onEndReachedThreshold={0.4}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading && !!data}
-          onRefresh={refetch}
-          tintColor={colors.primary}
-        />
-      }
-      windowSize={10}
-      removeClippedSubviews
-      contentContainerStyle={styles.content}
-      style={styles.list}
-    />
+        windowSize={10}
+        removeClippedSubviews
+        contentContainerStyle={styles.content}
+        style={styles.list}
+      />
+    </SafeAreaView>
   );
 }
 
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: colors.screenBg,
+  },
   list: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.screenBg,
   },
   content: {
     flexGrow: 1,
+    paddingVertical: spacing.lg,
+  },
+  separator: {
+    height: spacing.lg,
   },
   footer: {
     paddingVertical: spacing.md,
   },
   devToggle: {
-    marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
     padding: spacing.sm,
     backgroundColor: colors.secondary,

@@ -8,5 +8,6 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^expo/src/winter$': '<rootDir>/src/__mocks__/expo-winter-stub.js',
     '^expo/src/winter/(.*)$': '<rootDir>/src/__mocks__/expo-winter-stub.js',
+    '\\.svg$': '<rootDir>/src/__mocks__/svg-stub.js',
   },
 };

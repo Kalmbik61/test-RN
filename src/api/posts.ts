@@ -1,4 +1,4 @@
-import { request } from './client';
+import { request } from './http';
 
 export type Author = {
   id: string;

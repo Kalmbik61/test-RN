@@ -7,6 +7,9 @@ export type { TabsProps, TabKey } from './Tabs/Tabs';
 export { Likes } from './Likes/Likes';
 export type { LikesProps } from './Likes/Likes';
 
+export { CommentsBadge } from './CommentsBadge/CommentsBadge';
+export type { CommentsBadgeProps } from './CommentsBadge/CommentsBadge';
+
 export { Input } from './Input/Input';
 export type { InputProps } from './Input/Input';
 

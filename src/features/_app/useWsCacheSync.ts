@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ws } from '@/api/ws';
 import { qk } from '@/utils/queryKeys';
 import type { Post, PostsPage } from '@/api/posts';
+import { hasPendingOwnComment } from '@/features/comments/pendingOwnComments';
 
 type InfinitePostsData = {
   pages: PostsPage[];
@@ -35,9 +36,9 @@ type CommentAddedPayload = {
 };
 
 type WsMessage = {
-  type: string;
-  payload: LikeUpdatedPayload | CommentAddedPayload;
-};
+  type?: string;
+  payload?: Partial<LikeUpdatedPayload & CommentAddedPayload>;
+} & Partial<LikeUpdatedPayload & CommentAddedPayload>;
 
 export function useWsCacheSync(): void {
   const qc = useQueryClient();
@@ -47,8 +48,13 @@ export function useWsCacheSync(): void {
       const msg = raw as WsMessage | null;
       if (!msg?.type) return;
 
+      const data = msg.payload ?? msg;
+
       if (msg.type === 'like_updated') {
-        const { postId, isLiked, likesCount } = msg.payload as LikeUpdatedPayload;
+        const postId = data.postId;
+        const isLiked = data.isLiked;
+        const likesCount = data.likesCount;
+        if (!postId || typeof isLiked !== 'boolean' || typeof likesCount !== 'number') return;
 
         qc.setQueriesData<InfinitePostsData>(
           { queryKey: ['feed'] },
@@ -62,7 +68,9 @@ export function useWsCacheSync(): void {
       }
 
       if (msg.type === 'comment_added') {
-        const { postId } = msg.payload as CommentAddedPayload;
+        const postId = data.postId;
+        if (!postId) return;
+        if (hasPendingOwnComment(postId)) return;
         qc.invalidateQueries({ queryKey: qk.comments(postId) });
       }
     });

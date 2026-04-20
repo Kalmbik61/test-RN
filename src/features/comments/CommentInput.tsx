@@ -1,9 +1,17 @@
-import { Platform, KeyboardAvoidingView, StyleSheet, View } from 'react-native';
 import { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { ApiError } from '@/api/types';
-import { Button } from '@/ui/Button/Button';
-import { Input } from '@/ui/Input/Input';
-import { spacing } from '@/theme/tokens';
+import { SendIcon } from '@/ui/icons/SendIcon';
+import { colors, radii, spacing } from '@/theme/tokens';
+import { fontFamily, fontSize } from '@/theme/typography';
 import { useAddComment } from './useAddComment';
 
 const MAX_LENGTH = 500;
@@ -18,12 +26,14 @@ export function CommentInput({ postId }: Props) {
 
   const { mutate, isPending } = useAddComment(postId);
 
+  const isOverLimit = text.length > MAX_LENGTH;
+  const isDisabled = text.trim().length === 0 || isOverLimit || isPending;
+
   const handleSend = () => {
+    if (isDisabled) return;
     setInlineError(undefined);
     mutate(text, {
-      onSuccess: () => {
-        setText('');
-      },
+      onSuccess: () => setText(''),
       onError: (err) => {
         if (err instanceof ApiError && err.status === 400) {
           setInlineError(err.message || 'Неверный запрос');
@@ -32,47 +42,85 @@ export function CommentInput({ postId }: Props) {
     });
   };
 
-  const isOverLimit = text.length > MAX_LENGTH;
-  const isDisabled = text.trim().length === 0 || isOverLimit || isPending;
+  const sendColor = isDisabled ? colors.primaryDisabled : colors.primary;
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.container}>
-        <Input
-          value={text}
-          onChangeText={(t) => {
-            setText(t);
-            if (inlineError) setInlineError(undefined);
-          }}
-          maxLength={MAX_LENGTH + 1}
-          showCounter
-          multiline
-          placeholder="Напишите комментарий..."
-          error={inlineError}
-          accessibilityLabel="Поле ввода комментария"
-        />
-        <View style={styles.buttonRow}>
-          <Button
-            title="Отправить"
+      <View style={styles.wrap}>
+        <View style={[styles.pill, inlineError ? styles.pillError : null]}>
+          <TextInput
+            value={text}
+            onChangeText={(t) => {
+              setText(t);
+              if (inlineError) setInlineError(undefined);
+            }}
+            maxLength={MAX_LENGTH + 1}
+            placeholder="Ваш комментарий"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            multiline
+            accessibilityLabel="Поле ввода комментария"
+          />
+          <Pressable
             onPress={handleSend}
             disabled={isDisabled}
-            loading={isPending}
+            accessibilityRole="button"
             accessibilityLabel="Отправить комментарий"
-          />
+            hitSlop={8}
+            style={styles.send}
+          >
+            <SendIcon size={24} color={sendColor} />
+          </Pressable>
         </View>
+        {inlineError ? <Text style={styles.error}>{inlineError}</Text> : null}
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: spacing.md,
-    gap: spacing.sm,
+  wrap: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.bg,
   },
-  buttonRow: {
-    alignSelf: 'flex-end',
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.pill,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.xs,
+    paddingVertical: 4,
+    minHeight: 48,
+  },
+  pillError: {
+    borderColor: colors.danger,
+  },
+  input: {
+    flex: 1,
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.md,
+    color: colors.text,
+    paddingVertical: spacing.sm,
+    maxHeight: 120,
+  },
+  send: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  error: {
+    marginTop: spacing.xs,
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.xs,
+    color: colors.danger,
   },
 });

@@ -1,4 +1,4 @@
-import { request } from './client';
+import { request } from './http';
 import { ApiError } from './types';
 
 // Mock react-native-get-random-values (required by uuid used in uuid utils)

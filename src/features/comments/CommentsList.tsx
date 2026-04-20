@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Comment } from '@/ui/Comment/Comment';
 import { Loader } from '@/ui/Loader/Loader';
@@ -7,13 +8,35 @@ import { useComments } from './useComments';
 
 type Props = {
   postId: string;
+  totalCount?: number;
 };
 
-export function CommentsList({ postId }: Props) {
-  const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useComments(postId);
+type SortOrder = 'newest' | 'oldest';
 
-  const comments = data?.pages.flatMap((p) => p.comments) ?? [];
+type LikeState = { liked: boolean; delta: number };
+
+function pluralize(count: number) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'комментарий';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'комментария';
+  return 'комментариев';
+}
+
+export function CommentsList({ postId, totalCount }: Props) {
+  const { data, isLoading, isFetchingNextPage } = useComments(postId);
+
+  const [sort, setSort] = useState<SortOrder>('oldest');
+  const [likes, setLikes] = useState<Record<string, LikeState>>({});
+
+  const comments = useMemo(() => {
+    const flat = data?.pages.flatMap((p) => p.comments) ?? [];
+    const sorted = [...flat].sort((a, b) => {
+      const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return sort === 'newest' ? diff : -diff;
+    });
+    return sorted;
+  }, [data, sort]);
 
   if (isLoading) {
     return (
@@ -31,32 +54,53 @@ export function CommentsList({ postId }: Props) {
     );
   }
 
+  const toggleLike = (id: string) =>
+    setLikes((prev) => {
+      const cur = prev[id] ?? { liked: false, delta: 0 };
+      return {
+        ...prev,
+        [id]: { liked: !cur.liked, delta: cur.liked ? cur.delta - 1 : cur.delta + 1 },
+      };
+    });
+
   return (
     <View>
-      {comments.map((c) => (
-        <Comment
-          key={c.id}
-          avatarUrl={c.author.avatarUrl}
-          displayName={c.author.displayName}
-          text={c.text}
-          createdAt={c.createdAt}
-        />
-      ))}
-      {hasNextPage && (
+      <View style={styles.header}>
+        <Text style={styles.headerCount}>
+          {totalCount ?? comments.length} {pluralize(totalCount ?? comments.length)}
+        </Text>
         <Pressable
-          onPress={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
+          onPress={() => setSort((s) => (s === 'newest' ? 'oldest' : 'newest'))}
           accessibilityRole="button"
-          accessibilityLabel="Показать ещё комментарии"
-          style={styles.loadMore}
+          accessibilityLabel="Изменить сортировку"
+          hitSlop={8}
         >
-          {isFetchingNextPage ? (
-            <Loader />
-          ) : (
-            <Text style={styles.loadMoreText}>Показать ещё</Text>
-          )}
+          <Text style={styles.headerSort}>
+            {sort === 'newest' ? 'Сначала старые' : 'Сначала новые'}
+          </Text>
         </Pressable>
-      )}
+      </View>
+
+      {comments.map((c) => {
+        const like = likes[c.id];
+        return (
+          <Comment
+            key={c.id}
+            avatarUrl={c.author.avatarUrl}
+            displayName={c.author.displayName}
+            text={c.text}
+            likesCount={like ? like.delta : 0}
+            isLiked={like?.liked ?? false}
+            onToggleLike={() => toggleLike(c.id)}
+          />
+        );
+      })}
+
+      {isFetchingNextPage ? (
+        <View style={styles.footer}>
+          <Loader />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -71,13 +115,24 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.muted,
   },
-  loadMore: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+  },
+  headerCount: {
+    fontFamily: fontFamily.regular,
+    fontSize: fontSize.md,
+    color: colors.muted,
+  },
+  headerSort: {
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSize.md,
+    color: colors.primary,
+  },
+  footer: {
     paddingVertical: spacing.md,
     alignItems: 'center',
-  },
-  loadMoreText: {
-    fontFamily: fontFamily.semibold,
-    fontSize: fontSize.sm,
-    color: colors.primary,
   },
 });

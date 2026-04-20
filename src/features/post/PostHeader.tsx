@@ -9,14 +9,16 @@ type Props = {
   author: Author;
   createdAt: string;
   isVerified?: boolean;
+  variant?: 'default' | 'compact';
 };
 
-export function PostHeader({ author, createdAt, isVerified }: Props) {
+export function PostHeader({ author, createdAt, isVerified, variant = 'default' }: Props) {
+  const compact = variant === 'compact';
   return (
     <View style={styles.row}>
       <Image
-        source={{ uri: author.avatarUrl }}
-        style={styles.avatar}
+        source={author.avatarUrl ? { uri: author.avatarUrl } : undefined}
+        style={compact ? styles.avatarLg : styles.avatar}
         contentFit="cover"
         cachePolicy="memory-disk"
         transition={300}
@@ -24,12 +26,12 @@ export function PostHeader({ author, createdAt, isVerified }: Props) {
       />
       <View style={styles.info}>
         <View style={styles.nameRow}>
-          <Text style={styles.displayName} numberOfLines={1}>
+          <Text style={compact ? styles.displayNameLg : styles.displayName} numberOfLines={1}>
             {author.displayName}
           </Text>
-          {isVerified ? <VerifiedBadge /> : null}
+          {!compact && isVerified ? <VerifiedBadge /> : null}
         </View>
-        <Text style={styles.date}>{formatDate(createdAt)}</Text>
+        {!compact ? <Text style={styles.date}>{formatDate(createdAt)}</Text> : null}
       </View>
     </View>
   );
@@ -60,6 +62,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: colors.secondary,
   },
+  avatarLg: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.pill,
+    backgroundColor: colors.secondary,
+  },
   info: {
     flex: 1,
     gap: 2,
@@ -72,6 +80,12 @@ const styles = StyleSheet.create({
   displayName: {
     fontFamily: fontFamily.semibold,
     fontSize: fontSize.sm,
+    color: colors.text,
+    flexShrink: 1,
+  },
+  displayNameLg: {
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize.lg,
     color: colors.text,
     flexShrink: 1,
   },

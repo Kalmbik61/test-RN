@@ -1,7 +1,7 @@
 import { ApiError, ApiErrorCode } from './types';
 
 export const BASE_URL = 'https://k8s.mectest.ru/test-app';
-const TIMEOUT_MS = 15_000;
+export const TIMEOUT_MS = 15_000;
 
 export type RequestOpts = Omit<RequestInit, 'signal'> & {
   token: string;

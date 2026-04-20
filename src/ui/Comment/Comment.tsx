@@ -1,17 +1,28 @@
-import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { HeartIcon } from '@/ui/icons/HeartIcon';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { fontFamily, fontSize, lineHeight } from '@/theme/typography';
-import { formatDate } from '@/utils/formatDate';
 
 export type CommentProps = {
   avatarUrl: string;
   displayName: string;
   text: string;
-  createdAt: string;
+  likesCount?: number;
+  isLiked?: boolean;
+  onToggleLike?: () => void;
   style?: ViewStyle;
 };
 
-export function Comment({ avatarUrl, displayName, text, createdAt, style }: CommentProps) {
+export function Comment({
+  avatarUrl,
+  displayName,
+  text,
+  likesCount,
+  isLiked = false,
+  onToggleLike,
+  style,
+}: CommentProps) {
+  const showLikes = typeof likesCount === 'number';
   return (
     <View style={[styles.row, style]}>
       <Image
@@ -21,14 +32,28 @@ export function Comment({ avatarUrl, displayName, text, createdAt, style }: Comm
         accessibilityLabel={`${displayName} avatar`}
       />
       <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.name} numberOfLines={1}>
-            {displayName}
-          </Text>
-          <Text style={styles.date}>{formatDate(createdAt)}</Text>
-        </View>
+        <Text style={styles.name} numberOfLines={1}>
+          {displayName}
+        </Text>
         <Text style={styles.text}>{text}</Text>
       </View>
+      {showLikes ? (
+        <Pressable
+          onPress={onToggleLike}
+          disabled={!onToggleLike}
+          accessibilityRole="button"
+          accessibilityLabel={isLiked ? 'Убрать лайк' : 'Поставить лайк'}
+          hitSlop={8}
+          style={styles.likeWrap}
+        >
+          <HeartIcon
+            size={20}
+            filled={isLiked}
+            color={isLiked ? colors.like : colors.commentIcon}
+          />
+          <Text style={styles.likeCount}>{likesCount}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -36,39 +61,39 @@ export function Comment({ avatarUrl, displayName, text, createdAt, style }: Comm
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: spacing.md,
     gap: spacing.md,
   },
   avatar: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: radii.pill,
     backgroundColor: colors.secondary,
   },
   content: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
+    gap: 2,
   },
   name: {
-    fontFamily: fontFamily.semibold,
-    fontSize: fontSize.sm,
+    fontFamily: fontFamily.bold,
+    fontSize: fontSize.md,
     color: colors.text,
-    flexShrink: 1,
-  },
-  date: {
-    fontFamily: fontFamily.regular,
-    fontSize: fontSize.xs,
-    color: colors.muted,
   },
   text: {
     fontFamily: fontFamily.regular,
+    fontSize: fontSize.sm,
+    lineHeight: lineHeight.sm,
+    color: colors.muted,
+  },
+  likeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  likeCount: {
+    fontFamily: fontFamily.regular,
     fontSize: fontSize.md,
-    lineHeight: lineHeight.md,
-    color: colors.text,
+    color: colors.muted,
   },
 });

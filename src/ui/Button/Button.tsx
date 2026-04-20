@@ -37,7 +37,7 @@ export function Button({
         styles.base,
         isPrimary ? styles.primary : styles.secondary,
         pressed && !isDisabled && (isPrimary ? styles.primaryPressed : styles.secondaryPressed),
-        isDisabled && styles.disabled,
+        disabled && !loading && (isPrimary ? styles.primaryDisabled : styles.disabled),
         style,
       ]}
     >
@@ -54,15 +54,16 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 48,
+    minHeight: 56,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primary: { backgroundColor: colors.primary },
   primaryPressed: { backgroundColor: colors.primaryPressed },
+  primaryDisabled: { backgroundColor: colors.primaryDisabled },
   secondary: {
     backgroundColor: colors.secondary,
     borderWidth: 1,

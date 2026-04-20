@@ -1,14 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing } from '@/theme/tokens';
-import { fontFamily, fontSize } from '@/theme/typography';
+import { fontFamily } from '@/theme/typography';
 import type { PostTier } from '@/api/posts';
 
 type FeedTier = PostTier | undefined;
 
 const TABS: { key: FeedTier; label: string }[] = [
   { key: undefined, label: 'Все' },
-  { key: 'free', label: 'Free' },
-  { key: 'paid', label: 'Paid' },
+  { key: 'free', label: 'Бесплатные' },
+  { key: 'paid', label: 'Платные' },
 ];
 
 type FeedTabsProps = {
@@ -41,27 +41,33 @@ export function FeedTabs({ value, onChange }: FeedTabsProps) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    backgroundColor: colors.secondary,
-    padding: spacing.xs,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: radii.pill,
-    alignSelf: 'flex-start',
-    marginHorizontal: spacing.md,
-    marginVertical: spacing.sm,
+    marginLeft: spacing.lg,
+    marginRight: spacing.lg,
+    marginBottom: spacing.lg,
+
   },
   tab: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    flex: 1,
+    padding: 10,
     borderRadius: radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabActive: {
-    backgroundColor: colors.bg,
+    backgroundColor: colors.primary,
   },
   label: {
-    fontFamily: fontFamily.semibold,
-    fontSize: fontSize.sm,
-    color: colors.muted,
+    fontFamily: fontFamily.medium,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    color: colors.commentIcon,
   },
   labelActive: {
-    color: colors.text,
+    color: colors.bg,
   },
 });

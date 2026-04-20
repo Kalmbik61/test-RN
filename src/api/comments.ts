@@ -1,4 +1,4 @@
-import { request } from './client';
+import { request } from './http';
 import type { Author } from './posts';
 
 export type Comment = {

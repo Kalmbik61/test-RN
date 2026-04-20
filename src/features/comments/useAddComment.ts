@@ -3,6 +3,7 @@ import { addComment } from '@/api/comments';
 import type { Comment, CommentsPage } from '@/api/comments';
 import { useAuth } from '@/store/AuthContext';
 import { qk } from '@/utils/queryKeys';
+import { markPendingOwnComment } from './pendingOwnComments';
 
 type InfiniteCommentsData = {
   pages: CommentsPage[];
@@ -24,6 +25,7 @@ export function useAddComment(postId: string) {
     mutationFn: (text: string) => addComment(uuid!, postId, text, regenerate),
 
     onMutate: async (text: string) => {
+      markPendingOwnComment(postId);
       await qc.cancelQueries({ queryKey: qk.comments(postId) });
 
       const prev = qc.getQueryData<InfiniteCommentsData>(qk.comments(postId));
@@ -54,7 +56,7 @@ export function useAddComment(postId: string) {
         };
       });
 
-      return { prev };
+      return { prev, tempId };
     },
 
     onError: (_e, _v, ctx) => {
@@ -63,8 +65,28 @@ export function useAddComment(postId: string) {
       }
     },
 
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: qk.comments(postId) });
+    onSuccess: (response, _text, ctx) => {
+      if (!ctx?.tempId) return;
+      qc.setQueryData<InfiniteCommentsData>(qk.comments(postId), (old) => {
+        if (!old) return old;
+        const replacement: Comment = {
+          ...response.comment,
+          author: ME_AUTHOR,
+        };
+        return {
+          ...old,
+          pages: old.pages.map((page, i) =>
+            i === 0
+              ? {
+                  ...page,
+                  comments: page.comments.map((c) =>
+                    c.id === ctx.tempId ? replacement : c,
+                  ),
+                }
+              : page,
+          ),
+        };
+      });
     },
   });
 }
