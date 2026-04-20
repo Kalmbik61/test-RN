@@ -41,27 +41,12 @@ function findCachedAuthor(
 }
 
 export default function PostDetailScreen() {
-  const { id, mock } = useLocalSearchParams<{ id: string; mock?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const qc = useQueryClient();
-  const real = usePost(id);
+  const { data: post, isLoading, error, refetch } = usePost(id);
   const { mutate, isPending } = useToggleLike(id);
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = useComments(id);
-
-  let post = real.data;
-  let isLoading = real.isLoading;
-  let error: unknown = real.error;
-  const refetch = real.refetch;
-
-  if (__DEV__ && mock === 'error') {
-    post = undefined;
-    isLoading = false;
-    error = new ApiError('SERVER', 'Simulated error', 500, true);
-  } else if (__DEV__ && mock === 'notfound') {
-    post = undefined;
-    isLoading = false;
-    error = new ApiError('NOT_FOUND', 'Not found', 404, false);
-  }
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!hasNextPage || isFetchingNextPage) return;

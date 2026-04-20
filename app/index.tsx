@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import type { Post, PostTier } from '@/api/posts';
 import { EmptyState, ErrorState, Loader } from '@/ui';
 import { colors, spacing } from '@/theme/tokens';
-import { fontFamily, fontSize } from '@/theme/typography';
 import { FeedTabs } from '@/features/feed/FeedTabs';
 import { FeedSkeleton } from '@/features/feed/FeedSkeleton';
 import { PostCard } from '@/features/feed/PostCard';
@@ -16,7 +15,6 @@ type FeedTier = PostTier | undefined;
 export default function FeedScreen() {
   const router = useRouter();
   const [tier, setTier] = useState<FeedTier>(undefined);
-  const [simulateError, setSimulateError] = useState(false);
 
   const {
     data,
@@ -27,7 +25,7 @@ export default function FeedScreen() {
     hasNextPage,
     fetchNextPage,
     refetch,
-  } = useFeed(tier, simulateError);
+  } = useFeed(tier);
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
 
@@ -38,18 +36,6 @@ export default function FeedScreen() {
   const ListHeader = (
     <View>
       <FeedTabs value={tier} onChange={setTier} />
-      {__DEV__ ? (
-        <Pressable
-          onPress={() => setSimulateError((v) => !v)}
-          accessibilityRole="button"
-          accessibilityLabel="Toggle simulate error"
-          style={[styles.devToggle, simulateError && styles.devToggleActive]}
-        >
-          <Text style={styles.devToggleText}>
-            {simulateError ? '[DEV] Error ON' : '[DEV] Error OFF'}
-          </Text>
-        </Pressable>
-      ) : null}
     </View>
   );
 
@@ -121,20 +107,5 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: spacing.md,
-  },
-  devToggle: {
-    marginBottom: spacing.sm,
-    padding: spacing.sm,
-    backgroundColor: colors.secondary,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  devToggleActive: {
-    backgroundColor: '#ff6b6b22',
-  },
-  devToggleText: {
-    fontFamily: fontFamily.semibold,
-    fontSize: fontSize.xs,
-    color: colors.muted,
   },
 });
