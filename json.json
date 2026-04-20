@@ -1,0 +1,573 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Mecenate Test API",
+      "description": "Backend API for mobile developer test assignments. In-memory data, UUID-based auth, WebSocket events.",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "https://k8s.mectest.ru/test-app",
+        "description": "Production"
+      }
+    ],
+    "security": [
+      {
+        "BearerUUID": []
+      }
+    ],
+    "paths": {
+      "/posts": {
+        "get": {
+          "summary": "Get posts feed",
+          "description": "Paginated list of posts sorted by createdAt desc. Paid posts have empty body.",
+          "tags": [
+            "Posts"
+          ],
+          "parameters": [
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 20
+              },
+              "description": "Number of posts (max 20)"
+            },
+            {
+              "name": "cursor",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "ID of the last received post"
+            },
+            {
+              "name": "tier",
+              "in": "query",
+              "schema": {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "paid"
+                ]
+              },
+              "description": "Filter by tier: free or paid"
+            },
+            {
+              "name": "simulate_error",
+              "in": "query",
+              "schema": {
+                "type": "boolean"
+              },
+              "description": "Return 500 for error handling testing"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Posts list",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/PostsResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/Unauthorized"
+            },
+            "500": {
+              "$ref": "#/components/responses/InternalError"
+            }
+          }
+        }
+      },
+      "/posts/{id}": {
+        "get": {
+          "summary": "Get post by ID",
+          "description": "Full post details. Paid posts have empty body.",
+          "tags": [
+            "Posts"
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "example": "post_1"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Post detail",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/PostDetailResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/Unauthorized"
+            },
+            "404": {
+              "$ref": "#/components/responses/NotFound"
+            }
+          }
+        }
+      },
+      "/posts/{id}/like": {
+        "post": {
+          "summary": "Toggle like",
+          "description": "Like/unlike a post (toggle). Triggers a like_updated WebSocket event after 1-3s delay.",
+          "tags": [
+            "Posts"
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "example": "post_1"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Like toggled",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LikeResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/Unauthorized"
+            },
+            "404": {
+              "$ref": "#/components/responses/NotFound"
+            }
+          }
+        }
+      },
+      "/posts/{id}/comments": {
+        "get": {
+          "summary": "Get comments",
+          "description": "Paginated list of comments for a post.",
+          "tags": [
+            "Comments"
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "example": "post_1"
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 20
+              },
+              "description": "Number of comments"
+            },
+            {
+              "name": "cursor",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Cursor for pagination"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Comments list",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CommentsResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "$ref": "#/components/responses/Unauthorized"
+            },
+            "404": {
+              "$ref": "#/components/responses/NotFound"
+            }
+          }
+        },
+        "post": {
+          "summary": "Add comment",
+          "description": "Create a new comment. Triggers a comment_added WebSocket event.",
+          "tags": [
+            "Comments"
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "example": "post_1"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "text"
+                  ],
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "example": "Отличный пост!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Comment created",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CommentCreatedResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "$ref": "#/components/responses/ValidationError"
+            },
+            "401": {
+              "$ref": "#/components/responses/Unauthorized"
+            },
+            "404": {
+              "$ref": "#/components/responses/NotFound"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "BearerUUID": {
+          "type": "http",
+          "scheme": "bearer",
+          "description": "Any valid UUID as user_id, e.g. 550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "schemas": {
+        "Author": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "author_1"
+            },
+            "username": {
+              "type": "string",
+              "example": "lesha_krid"
+            },
+            "displayName": {
+              "type": "string",
+              "example": "Леша Крид"
+            },
+            "avatarUrl": {
+              "type": "string",
+              "format": "uri",
+              "example": "https://s3.regru.cloud/mecenate-test-picture/logo1.webm"
+            },
+            "bio": {
+              "type": "string",
+              "example": "Музыка, визуальное искусство и эксперименты."
+            },
+            "subscribersCount": {
+              "type": "integer",
+              "example": 1420
+            },
+            "isVerified": {
+              "type": "boolean",
+              "example": true
+            }
+          }
+        },
+        "Post": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "post_1"
+            },
+            "author": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "title": {
+              "type": "string",
+              "example": "Подготовка к лету"
+            },
+            "body": {
+              "type": "string",
+              "description": "Full text. Empty string for paid posts."
+            },
+            "preview": {
+              "type": "string",
+              "description": "Short preview up to 120 chars"
+            },
+            "coverUrl": {
+              "type": "string",
+              "format": "uri",
+              "example": "https://s3.regru.cloud/mecenate-test-picture/pic1.jpeg"
+            },
+            "likesCount": {
+              "type": "integer",
+              "example": 248
+            },
+            "commentsCount": {
+              "type": "integer",
+              "example": 17
+            },
+            "isLiked": {
+              "type": "boolean",
+              "description": "Whether current user liked this post"
+            },
+            "tier": {
+              "type": "string",
+              "enum": [
+                "free",
+                "paid"
+              ]
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "Comment": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "comment_1"
+            },
+            "postId": {
+              "type": "string",
+              "example": "post_1"
+            },
+            "author": {
+              "$ref": "#/components/schemas/Author"
+            },
+            "text": {
+              "type": "string",
+              "example": "Очень круто, ждём продолжения!"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "PostsResponse": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "posts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Post"
+                  }
+                },
+                "nextCursor": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "post_10"
+                },
+                "hasMore": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "PostDetailResponse": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "post": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          }
+        },
+        "LikeResponse": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "isLiked": {
+                  "type": "boolean"
+                },
+                "likesCount": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "CommentsResponse": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "comments": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Comment"
+                  }
+                },
+                "nextCursor": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "hasMore": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "CommentCreatedResponse": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "comment": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          }
+        },
+        "ErrorResponse": {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "type": "boolean",
+              "example": false
+            },
+            "error": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "NOT_FOUND"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Post not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "Unauthorized": {
+          "description": "Invalid or missing UUID token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        },
+        "NotFound": {
+          "description": "Resource not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        },
+        "ValidationError": {
+          "description": "Request body validation failed",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        },
+        "InternalError": {
+          "description": "Internal server error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
