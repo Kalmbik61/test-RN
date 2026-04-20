@@ -25,19 +25,17 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <View style={[styles.wrap, style]} accessibilityLabel={`Error: ${title}`}>
-      <View style={styles.body}>
-        {icon ? (
-          <View style={styles.icon}>{icon}</View>
-        ) : (
-          <Image
-            source={ILLUSTRATION}
-            style={styles.illustration}
-            accessibilityIgnoresInvertColors
-          />
-        )}
-        <Text style={styles.title}>{title}</Text>
-        {description ? <Text style={styles.description}>{description}</Text> : null}
-      </View>
+      {icon ? (
+        <View style={styles.icon}>{icon}</View>
+      ) : (
+        <Image
+          source={ILLUSTRATION}
+          style={styles.illustration}
+          accessibilityIgnoresInvertColors
+        />
+      )}
+      <Text style={styles.title}>{title}</Text>
+      {description ? <Text style={styles.description}>{description}</Text> : null}
       {onRetry ? (
         <Button
           title={retryLabel}
@@ -55,22 +53,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
-    justifyContent: 'space-between',
-    alignItems: 'stretch',
-  },
-  body: {
-    flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'stretch',
     gap: spacing.lg,
   },
   icon: {
-    marginBottom: spacing.sm,
+    alignItems: 'center',
   },
   illustration: {
     width: 180,
     height: 180,
     resizeMode: 'contain',
+    alignSelf: 'center',
   },
   title: {
     fontFamily: fontFamily.semibold,
@@ -78,7 +72,6 @@ const styles = StyleSheet.create({
     lineHeight: lineHeight.lg,
     color: colors.text,
     textAlign: 'center',
-    maxWidth: 320,
   },
   description: {
     fontFamily: fontFamily.regular,
@@ -86,6 +79,7 @@ const styles = StyleSheet.create({
     lineHeight: lineHeight.sm,
     color: colors.muted,
     textAlign: 'center',
+    alignSelf: 'center',
     maxWidth: 280,
   },
   action: {
