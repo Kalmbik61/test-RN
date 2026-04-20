@@ -1,3 +1,10 @@
 {"t":0,"agent":"system","event":"skill_invoked","skill_name":"plan-eng-review"}
 {"t":0,"agent":"af8d7d2","agent_type":"unknown","event":"agent_stop","success":true}
 {"t":0,"agent":"a73af00","agent_type":"executor","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a73af00","agent_type":"executor","event":"agent_stop","success":true,"duration_ms":470262}
+{"t":0,"agent":"a797123","agent_type":"executor","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a99103d","agent_type":"executor","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a969758","agent_type":"executor","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a797123","agent_type":"executor","event":"agent_stop","success":true,"duration_ms":331091}
+{"t":0,"agent":"a99103d","agent_type":"executor","event":"agent_stop","success":true,"duration_ms":343714}
+{"t":0,"agent":"a969758","agent_type":"executor","event":"agent_stop","success":true,"duration_ms":372696}

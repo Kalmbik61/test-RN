@@ -11,6 +11,8 @@ import { useToggleLike } from '@/features/post/useToggleLike';
 import { PostHeader } from '@/features/post/PostHeader';
 import { PostBody } from '@/features/post/PostBody';
 import { PostSkeleton } from '@/features/post/PostSkeleton';
+import { CommentsList } from '@/features/comments/CommentsList';
+import { CommentInput } from '@/features/comments/CommentInput';
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -87,8 +89,10 @@ export default function PostDetailScreen() {
             onToggle={() => mutate()}
           />
           <PostBody post={post} />
+          <CommentsList postId={id} />
         </View>
       </ScrollView>
+      <CommentInput postId={id} />
     </>
   );
 }

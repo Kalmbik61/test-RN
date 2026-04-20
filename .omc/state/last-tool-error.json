@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"git add src/features/_app/WsBridge.tsx && git commit -m \\\"$(cat <<'EOF'\\nfeat(ws): replace WsBridge stub with real implementation\\n\\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.co...",
+  "error": "Exit code 1\nТекущая ветка: main\nИзменения, которые не в индексе для коммита:\n  (используйте «git add <файл>...», чтобы добавить файл в индекс)\n  (используйте «git restore <файл>...», чтобы отменить изменения в рабочем каталоге)\n\tизменено:      .omc/state/agent-replay-1f6c601d-d196-4374-b3fa-461dd1bcfc2d.jsonl\n\tизменено:      .omc/state/idle-notif-cooldown.json\n\tизменено:      .omc/state/mission-state.json\n\tизменено:      .omc/state/subagent-tracking.json\n\tизменено:      package-lock.json\n\tизмене...",
+  "timestamp": "2026-04-20T10:01:01.505Z",
+  "retry_count": 3
+}
