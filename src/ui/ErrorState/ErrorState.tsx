@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { colors, spacing } from '@/theme/tokens';
 import { fontFamily, fontSize, lineHeight } from '@/theme/typography';
-import { AlertIcon } from '@/ui/icons/AlertIcon';
 import { Button } from '@/ui/Button/Button';
+
+const ILLUSTRATION = require('../../../assets/illustration_sticker.png');
 
 export type ErrorStateProps = {
   title: string;
@@ -18,20 +19,29 @@ export function ErrorState({
   title,
   description,
   icon,
-  retryLabel = 'Retry',
+  retryLabel = 'Повторить',
   onRetry,
   style,
 }: ErrorStateProps) {
   return (
     <View style={[styles.wrap, style]} accessibilityLabel={`Error: ${title}`}>
-      <View style={styles.icon}>{icon ?? <AlertIcon size={48} />}</View>
-      <Text style={styles.title}>{title}</Text>
-      {description ? <Text style={styles.description}>{description}</Text> : null}
+      <View style={styles.body}>
+        {icon ? (
+          <View style={styles.icon}>{icon}</View>
+        ) : (
+          <Image
+            source={ILLUSTRATION}
+            style={styles.illustration}
+            accessibilityIgnoresInvertColors
+          />
+        )}
+        <Text style={styles.title}>{title}</Text>
+        {description ? <Text style={styles.description}>{description}</Text> : null}
+      </View>
       {onRetry ? (
         <Button
           title={retryLabel}
           onPress={onRetry}
-          variant="secondary"
           accessibilityLabel={retryLabel}
           style={styles.action}
         />
@@ -42,19 +52,33 @@ export function ErrorState({
 
 const styles = StyleSheet.create({
   wrap: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
+  },
+  body: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xl,
-    gap: spacing.sm,
+    gap: spacing.lg,
   },
   icon: {
     marginBottom: spacing.sm,
   },
+  illustration: {
+    width: 180,
+    height: 180,
+    resizeMode: 'contain',
+  },
   title: {
     fontFamily: fontFamily.semibold,
     fontSize: fontSize.lg,
+    lineHeight: lineHeight.lg,
     color: colors.text,
     textAlign: 'center',
+    maxWidth: 320,
   },
   description: {
     fontFamily: fontFamily.regular,
@@ -65,7 +89,6 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   action: {
-    marginTop: spacing.md,
-    minWidth: 140,
+    alignSelf: 'stretch',
   },
 });

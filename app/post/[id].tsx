@@ -12,7 +12,6 @@ import { Image } from 'expo-image';
 import { ApiError } from '@/api/types';
 import { CommentsBadge, Likes } from '@/ui';
 import { ErrorState } from '@/ui/ErrorState/ErrorState';
-import { Button } from '@/ui/Button/Button';
 import { colors, spacing } from '@/theme/tokens';
 import { fontFamily, fontSize, lineHeight } from '@/theme/typography';
 import { usePost } from '@/features/post/usePost';
@@ -47,25 +46,18 @@ export default function PostDetailScreen() {
 
     if (error) {
       const isNotFound = error instanceof ApiError && error.code === 'NOT_FOUND';
-      return (
-        <>
-          <ErrorState
-            title={isNotFound ? 'Пост не найден' : 'Ошибка загрузки'}
-            description={isNotFound ? undefined : error.message}
-            onRetry={isNotFound ? undefined : refetch}
-            retryLabel="Повторить"
-            style={styles.errorState}
-          />
-          {isNotFound ? (
-            <View style={styles.backButton}>
-              <Button
-                title="Назад"
-                onPress={() => router.back()}
-                accessibilityLabel="Назад"
-              />
-            </View>
-          ) : null}
-        </>
+      return isNotFound ? (
+        <ErrorState
+          title="По вашему запросу ничего не найдено"
+          retryLabel="На главную"
+          onRetry={() => router.replace('/')}
+        />
+      ) : (
+        <ErrorState
+          title="Не удалось загрузить публикацию"
+          retryLabel="Повторить"
+          onRetry={refetch}
+        />
       );
     }
 
@@ -73,20 +65,12 @@ export default function PostDetailScreen() {
 
     if (post.tier === 'paid') {
       return (
-        <>
-          <ErrorState
-            title="Пост доступен после доната"
-            description="Откройте доступ в ленте, отправив донат автору"
-            style={styles.errorState}
-          />
-          <View style={styles.backButton}>
-            <Button
-              title="Назад"
-              onPress={() => router.back()}
-              accessibilityLabel="Назад"
-            />
-          </View>
-        </>
+        <ErrorState
+          title="Пост доступен после доната"
+          description="Откройте доступ в ленте, отправив донат автору"
+          retryLabel="Назад"
+          onRetry={() => router.back()}
+        />
       );
     }
 
@@ -184,13 +168,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  errorState: {
-    flex: 1,
-  },
-  backButton: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-    alignItems: 'center',
   },
 });
