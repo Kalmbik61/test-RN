@@ -36,6 +36,7 @@ export type GetPostsParams = {
   cursor?: string;
   tier?: PostTier;
   limit?: number;
+  simulateError?: boolean;
 };
 
 export const getPosts = (
@@ -47,6 +48,7 @@ export const getPosts = (
   if (params.cursor) q.set('cursor', params.cursor);
   if (params.tier) q.set('tier', params.tier);
   q.set('limit', String(params.limit ?? 10));
+  if (params.simulateError) q.set('simulate_error', 'true');
   return request<PostsPage>(`/posts?${q.toString()}`, {
     method: 'GET',
     token,
